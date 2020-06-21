@@ -16,7 +16,8 @@ int type = 0;
 int cd(char **args);
 int _setenv(char *name,char *value);
 int env(char **args, char**args2);
-
+int is_background = 0;
+char userinput[512];
 
 //task 1
 int cd(char **args){
@@ -52,26 +53,29 @@ int env(char **args, char**args2){
     }
     return 0;
 }
-int is_background = 0;
-char userinput[512];
 
 //task 2, task 3 & task4
 void programs(char **args, int is_background){	 
     pid = fork();
-    //printf("pid = %d\n", pid);
-    //printf("Starting programs... \n");
-	if(pid == 0){
-        signal(SIGINT, SIG_DFL);
-		if (execvp(*args, args) < 0){
+    //printf("pid = %d, is_background = %d\n", pid, is_background);
+	if(pid == 0){ 
+        //signal(SIGINT, SIG_DFL);
+        int tmp = execvp(*args, args);
+		if (tmp < 0){
 			printf("Command not found\n");
             exit(1);
 		}
-	}
-	if (is_background == 0)waitpid(pid,NULL,0);
+	}else{
+	if (is_background == 0){
+        printf("1");
+        waitpid(pid,NULL,0);
+    }
+    }
 }
 
-void sigint_handler(int signo) {
-    printf("Continue..\n");
+
+void _sigint(int signo) {
+    printf("\nContinue..\n");
 }
 
 //deal with all commands
@@ -86,12 +90,12 @@ int commands(int argc, char **args, char **args2){
 	else if (strcmp(args[0],"env") == 0) env(0, args2);
     else if (strcmp(args[0],"echo") == 0) {
         int i = 1;
-        while(args[i] != '\0' && args2[0] == NULL){
+        while(*args[i]!= '\0' && args2[0] == NULL){
         printf("%s%s",args[i],"");
         printf(" ");
         i++;
         }
-        while(args2[i] != '\0'){
+        while(*args2[i] != '\0'){
         printf("%s%s",args2[i],"");
         printf(" ");
         i++;
@@ -109,7 +113,6 @@ int commands(int argc, char **args, char **args2){
 
 
 //parser
-
 int get_nexttoken();
 
 char buf[1024];
@@ -182,7 +185,7 @@ int main(int argc, char *argv[]) {
     char *val;
     printf("Welcome, enter a command!\n");
     while (!is_eof) {
-        signal(SIGINT, sigint_handler);
+        signal(SIGINT, _sigint);
         type = get_nexttoken();
         printf("token: type = %d, text is '%s'\n", type, buf);
         //for(int y = 0; y < 10; y++)printf("userinput = %c\n", userinput[y]);
@@ -221,5 +224,6 @@ int main(int argc, char *argv[]) {
         //for(int y = 0; y < 10; y++)printf("userinput = %c\n", userinput[y]);
         }
     }
+    free(val);
     return 0;
 }
