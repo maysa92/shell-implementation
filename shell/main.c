@@ -7,7 +7,7 @@
 #include <signal.h>
 #include <sys/wait.h>
 #include <fcntl.h>
-#include <time.h>
+//#include <time.h>
 #include "grammar.h"
 
 pid_t pid = -1;
@@ -59,7 +59,7 @@ void programs(char **args, int is_background){
     pid = fork();
     //printf("pid = %d, is_background = %d\n", pid, is_background);
 	if(pid == 0){ 
-        //signal(SIGINT, SIG_DFL);
+        signal(SIGINT, SIG_DFL);
         int tmp = execvp(*args, args);
 		if (tmp < 0){
 			printf("Command not found\n");
@@ -67,7 +67,6 @@ void programs(char **args, int is_background){
 		}
 	}else{
 	if (is_background == 0){
-        printf("1");
         waitpid(pid,NULL,0);
     }
     }
@@ -90,12 +89,12 @@ int commands(int argc, char **args, char **args2){
 	else if (strcmp(args[0],"env") == 0) env(0, args2);
     else if (strcmp(args[0],"echo") == 0) {
         int i = 1;
-        while(*args[i]!= '\0' && args2[0] == NULL){
+        while(args[i]!= '\0' && args2[0] == NULL){
         printf("%s%s",args[i],"");
         printf(" ");
         i++;
         }
-        while(*args2[i] != '\0'){
+        while(args2[i] != '\0'){
         printf("%s%s",args2[i],"");
         printf(" ");
         i++;
