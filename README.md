@@ -7,10 +7,15 @@ What it does:
 The shell inteprets the following built-in commands:
 
  cd: changes the current working directory
+
  pwd: prints the current working directory
+
  echo: prints a message and the values of environment variables
+
  exit: terminates the shell
+
  env: prints the current values of the environment variables
+
  setenv: sets an environment variable
 
 
