@@ -2,8 +2,10 @@
 For Unix/Linux
 
 What it does:
+
 1)Built-in Commands
 The shell inteprets the following built-in commands:
+
  cd: changes the current working directory
  pwd: prints the current working directory
  echo: prints a message and the values of environment variables
