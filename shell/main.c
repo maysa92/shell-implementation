@@ -79,7 +79,7 @@ void _sigint(int signo) {
 
 //deal with all commands
 int commands(int argc, char **args, char **args2){
-    int q = 0;
+    //int q = 0;
 	if(strcmp(args[0],"exit") == 0) {
         printf("Bye-bye \n");
         exit(0);
@@ -89,7 +89,7 @@ int commands(int argc, char **args, char **args2){
 	else if (strcmp(args[0],"env") == 0) env(0, args2);
     else if (strcmp(args[0],"echo") == 0) {
         int i = 1;
-        while(args[i]!= '\0' && args2[0] == NULL){
+        while(args[i]!= '\0' && args2[1] == NULL){
         printf("%s%s",args[i],"");
         printf(" ");
         i++;
@@ -189,27 +189,25 @@ int main(int argc, char *argv[]) {
         printf("token: type = %d, text is '%s'\n", type, buf);
         //for(int y = 0; y < 10; y++)printf("userinput = %c\n", userinput[y]);
         if(type == 3){
+            if((tokens[0] = strtok(userinput," \n\t$")) == NULL) continue;
+            token_no = 1;
             //for(int y = 0; y < 10; y++)printf("userinput = %c\n", userinput[y]);
             for (int j = 0; j < 256; j++) { 
                 if (userinput[j] == '$'){
-                    if((tokens[0] = strtok(userinput," \n\t$")) == NULL) continue;
-                    token_no = 1;
 		            while((tokens[token_no] = strtok(NULL, " \n\t$")) != NULL) {
-                    token_no++;
+                    token_no += 1;
                     }
                     int p = 1;
                     while(tokens[p] != NULL){
                         val = getenv(tokens[p]);
                         dest[p] = val;
-                        p++;
+                        p += 1;
                     }
                     break;
                 }
             }
-        if((tokens[0] = strtok(userinput," \n\t")) == NULL) continue;
-        token_no = 1;
 		while((tokens[token_no] = strtok(NULL, " \n\t&")) != NULL) {
-            token_no++;
+            token_no += 1;
             
         }
         //for(int x = 0; x < 64; x++) printf("%s\n", dest[x]);
