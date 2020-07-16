@@ -4,6 +4,7 @@ For Unix/Linux
 What it does:
 
 1)Built-in Commands
+
 The shell inteprets the following built-in commands:
 
  cd: changes the current working directory
@@ -20,10 +21,13 @@ The shell inteprets the following built-in commands:
 
 
 2)Processes
+
 The shell takes a command, checks if it is not a built-in command, forks a process, loads the program from the file system, passes the arguments, and executes it.
 
 3)Background Processes
+
 Processes can be run on the background by appending a '&' at the end of a command line.
 
 4)Signal Handling
+
 When depressing ctrl-C, the shell returns to the prompt.
