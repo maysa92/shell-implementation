@@ -6,8 +6,6 @@
 #include <sys/types.h>
 #include <signal.h>
 #include <sys/wait.h>
-#include <fcntl.h>
-//#include <time.h>
 #include "grammar.h"
 
 pid_t pid = -1;
@@ -30,26 +28,20 @@ int cd(char **args){
 int _setenv(char *name,char *value){
     if (value == NULL){
 		setenv(name, "", 1);
-        printf("%s", "variable overwritten \n");
+        printf("%s", "done \n");
 	}else{
 		setenv(name, value, 1);
-        printf("%s", "variable overwritten \n");
+        printf("%s", "done \n");
 	}
     return 0;
 }
 
 int env(char **args, char**args2){
 	char **env_arr; 
-	if(args2[1] == NULL){
+	if(args2[0] == NULL){
         for(env_arr = environ; *env_arr != 0; env_arr ++){
 		    printf("%s\n", *env_arr);
 	    }
-    }else{
-        int i = 1;
-        while(args2[i] != NULL){
-            printf("%s\n", args2[i]);
-            i++;
-        }
     }
     return 0;
 }
@@ -57,7 +49,6 @@ int env(char **args, char**args2){
 //task 2, task 3 & task4
 void programs(char **args, int is_background){	 
     pid = fork();
-    //printf("pid = %d, is_background = %d\n", pid, is_background);
 	if(pid == 0){ 
         signal(SIGINT, SIG_DFL);
         int tmp = execvp(*args, args);
@@ -72,33 +63,28 @@ void programs(char **args, int is_background){
     }
 }
 
-
 void _sigint(int signo) {
     printf("\nContinue..\n");
 }
 
 //deal with all commands
 int commands(int argc, char **args, char **args2){
-    //int q = 0;
 	if(strcmp(args[0],"exit") == 0) {
         printf("Bye-bye \n");
         exit(0);
     }
-    else if (strcmp(args[0],"pwd") == 0) printf("%s\n",getcwd(args[1], 1024)); 
+    else if (strcmp(args[0],"pwd") == 0) {
+        printf("%s\n",getcwd(args[1], 2048)); 
+    }
 	else if (strcmp(args[0],"cd") == 0) cd(args);
 	else if (strcmp(args[0],"env") == 0) env(0, args2);
     else if (strcmp(args[0],"echo") == 0) {
-        int i = 1;
-        while(args[i]!= '\0' && args2[1] == NULL){
-        printf("%s%s",args[i],"");
-        printf(" ");
-        i++;
-        }
-        while(args2[i] != '\0'){
-        printf("%s%s",args2[i],"");
-        printf(" ");
-        i++;
-        }
+        for(int x = 1; x < 32; x++){
+            if(args[x]!= '\0'){
+                printf("%s%s",args[x],"");
+                printf(" ");
+            }
+        }   
         printf("\n");
     }
 	else if (strcmp(args[0],"setenv") == 0){
@@ -113,7 +99,6 @@ int commands(int argc, char **args, char **args2){
 
 //parser
 int get_nexttoken();
-
 char buf[1024];
 int is_eof = 0;
 int prev = EOF;
@@ -134,13 +119,10 @@ int get_nexttoken() {
     while (isspace(c) && c != EOF) { 
         c = fgetc(stdin);
         userinput[i] = c; 
-        //printf("5, userinput[%d] = %c\n", i, userinput[i]);
-        //i++;
     }
 
     if (c == '$') {
         userinput[i] = c; 
-        //printf("4, userinput[%d] = %c\n", i, userinput[i]);
         i++;
         buf[0] = '$';
         buf[1] = '\0';
@@ -150,7 +132,6 @@ int get_nexttoken() {
         if (c == '&') {
         userinput[i] = c; 
         is_background = 1;
-        //printf("3, userinput[%d] = %c\n", i, userinput[i]);
         i++;
         buf[0] = '&';
         buf[1] = '\0';
@@ -162,14 +143,12 @@ int get_nexttoken() {
         prev = c;
         if (isspace(c)) {
             userinput[i] = c; 
-            //printf("1, userinput[%d] = %c\n", i, userinput[i]);
             i++;
             buf[pos] = '\0';
             return ID;
         }
         buf[pos++] = c;
         userinput[i] = c; 
-        //printf("2, userinput[%d] = %c\n", i, userinput[i]);
         i++;
         c = fgetc(stdin);
     }
@@ -179,48 +158,70 @@ int get_nexttoken() {
 
 int main(int argc, char *argv[]) {
     int token_no = 0;
-    char *tokens[64];
-    char *dest[64];
-    char *val;
+    char *tokens[32] = {0};
+    char *dest[32] = {0};
+    int tmp = 0;
     printf("Welcome, enter a command!\n");
     while (!is_eof) {
         signal(SIGINT, _sigint);
         type = get_nexttoken();
-        printf("token: type = %d, text is '%s'\n", type, buf);
-        //for(int y = 0; y < 10; y++)printf("userinput = %c\n", userinput[y]);
+        //printf("token: type = %d, text is '%s'\n", type, buf);
         if(type == 3){
-            if((tokens[0] = strtok(userinput," \n\t$")) == NULL) continue;
+           // for(int y = 0; y < 10; y++)printf("userinput = %c\n", userinput[y]);
+            tokens[0] = strtok(userinput," \n\t");
             token_no = 1;
-            //for(int y = 0; y < 10; y++)printf("userinput = %c\n", userinput[y]);
-            for (int j = 0; j < 256; j++) { 
-                if (userinput[j] == '$'){
-		            while((tokens[token_no] = strtok(NULL, " \n\t$")) != NULL) {
-                    token_no += 1;
+            while(tmp < 511 && userinput[tmp] != '$') tmp++;
+            //found first $
+            if(tmp <511){
+                    tokens[token_no] = strtok(NULL, " \n\t$");
+                    while(tokens[token_no] != NULL) {
+                        printf("%s\n", getenv(tokens[token_no]));
+                        dest[token_no - 1] = getenv(tokens[token_no]);
+                        tokens[token_no] = NULL;
                     }
-                    int p = 1;
-                    while(tokens[p] != NULL){
-                        val = getenv(tokens[p]);
-                        dest[p] = val;
-                        p += 1;
+                    token_no++;
+                    tmp++;
+                    while(tmp < 511 && userinput[tmp] != '$') tmp++;
+                    //found second $
+                    //printf("tmp = %d\n, token_no = %d\n", tmp, token_no);
+                     if(tmp <511){
+                        tokens[token_no] = strtok(NULL, " \n\t$");
+                        while(tokens[token_no] != NULL) {
+                            printf("%s\n", getenv(tokens[token_no]));
+                            dest[token_no - 1] = getenv(tokens[token_no]);
+                            tokens[token_no] = NULL;
+                        }
+                        token_no++;
+                        tmp++;
+                        while(tmp < 511 && userinput[tmp] != '$') tmp++;
+                        //found third $
+                        if(tmp <511){
+                            tokens[token_no] = strtok(NULL, " \n\t$");
+                            while(tokens[token_no] != NULL) {
+                                printf("%s\n", getenv(tokens[token_no]));
+                                dest[token_no - 1] = getenv(tokens[token_no]);
+                                tokens[token_no] = NULL;
+                            }
+                        token_no++;
+                        }
                     }
-                    break;
                 }
-            }
-		while((tokens[token_no] = strtok(NULL, " \n\t&")) != NULL) {
-            token_no += 1;
-            
+        // no $ found
+        tokens[token_no] = strtok(NULL, " \n\t&");
+        while(tokens[token_no] != NULL){
+            token_no++;
+            tokens[token_no] = strtok(NULL, " \n\t&");
         }
-        //for(int x = 0; x < 64; x++) printf("%s\n", dest[x]);
+        //for(int x = 0; x < 7; x++) printf("dest = %s\n", dest[x]);
         //for(int x = 0; x < 5; x++) printf("tokens = %s\n", tokens[x]);
         commands(argc, tokens, dest);
         memset(tokens, 0, 64);
         memset(dest, 0, 64);
         memset(userinput, 0, 512);
-        val = 0;
         i = 0;
+        tmp = 0;
         //for(int y = 0; y < 10; y++)printf("userinput = %c\n", userinput[y]);
         }
     }
-    free(val);
     return 0;
 }
